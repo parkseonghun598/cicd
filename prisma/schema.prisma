@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique(map: "email") @db.VarChar(255)
+  name          String   @db.VarChar(100)
+  gender        String   @db.VarChar(15)
+  birth         DateTime @db.Date
+  address       String   @db.VarChar(255)
+  detailAddress String?  @map("detail_address") @db.VarChar(255)
+  phoneNumber   String?  @map("phone_number") @db.VarChar(15)
+  password      String?  @db.VarChar(255)
+  point         Int      @default(0) // 포인트 필드 추가
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  agreements      Agreement?
+  preferences     UserPreference[]
+  reviews         Review[]
+  userMissions    UserMission[]
+
+  @@map("users")
+}
+
+model Agreement {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique @map("user_id")
+  isServiceAgreed    Boolean  @default(true) @map("is_service_agreed")
+  isPersonalAgreed   Boolean  @default(true) @map("is_personal_agreed")
+  isLocationAgreed   Boolean  @default(true) @map("is_location_agreed")
+  isAlramAgreed      Boolean  @default(true) @map("is_alram_agreed")
+  ifFourteenAgreed   Boolean  @default(true) @map("if_fourteen_agreed")
+  isCreated          DateTime @default(now()) @map("is_created")
+  isUpdated          DateTime @updatedAt @map("is_updated")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("agreements")
+}
+
+model PreferCategory {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(100)
+
+  // Relations
+  userPreferences UserPreference[]
+
+  @@map("perfer_categories")
+}
+
+model UserPreference {
+  id         Int @id @default(autoincrement())
+  userId     Int @map("user_id")
+  categoryId Int @map("category_id")
+
+  // Relations
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category PreferCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("mapping")
+}
+
+model Store {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  address   String   @db.VarChar(255)
+  stars     Float    @default(3.0)
+  reviews   Int      @default(0)
+  storeType String   @map("store_type") @db.VarChar(100)
+  price     Int      @default(0)
+  menuName  String?  @map("menu_name") @db.VarChar(255)
+
+  // Relations
+  missions Mission[]
+  storeReviews Review[]
+
+  @@map("stores")
+}
+
+model Mission {
+  id        Int      @id @default(autoincrement())
+  point     Int
+  storeId   Int      @map("store_id")
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  region    String   @db.VarChar(100)
+
+  // Relations
+  store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  userMissions UserMission[]
+
+  @@map("missions")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  storeId   Int      @map("store_id")
+  userId    Int      @map("user_id")
+  title     String   @db.VarChar(255)
+  context   String   @db.Text
+  score     Float
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("store_review")
+}
+
+model UserMission {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  missionId Int      @map("mission_id")
+  status    String   @default("진행중") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@map("mission_mapping")
+}
