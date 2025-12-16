@@ -3,7 +3,7 @@ name: deploy-main
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -66,4 +66,3 @@ jobs:
       - name: Restart systemd service
         run: |
           ssh umc9thworkbook 'sudo systemctl restart app'
-          
