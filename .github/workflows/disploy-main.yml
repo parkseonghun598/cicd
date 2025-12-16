@@ -33,6 +33,7 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Copy Workspace
+      
         run: |
           ssh umc9thworkbook 'sudo mkdir -p /opt/app'
           ssh umc9thworkbook 'sudo chown ubuntu:ubuntu /opt/app'
